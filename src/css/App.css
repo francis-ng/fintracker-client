@@ -1,0 +1,87 @@
+.align-center {
+  text-align: center;
+}
+
+.header {
+  padding: 10px 0;
+}
+
+.list-item {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.list-item:hover {
+  cursor: pointer;
+  background-color: rgb(243, 242, 241);
+}
+
+.ledgerList-enter {
+  opacity: 0;
+  left: -400;
+  transition: opacity 200ms, transform 200ms;
+}
+
+.ledgerList-enter-active {
+  opacity: 1;
+  transform: translateX(400px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.ledgerList-exit {
+  opacity: 1;
+  left: 0;
+  transition: opacity 200ms, transform 200ms;
+}
+
+.ledgerList-exit-active {
+  opacity: 0;
+  transform: translateX(-400px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.ledgerDetails-enter {
+  opacity: 0;
+  left: 400;
+  transition: opacity 200ms, transform 200ms;
+}
+
+.ledgerDetails-enter-active {
+  opacity: 1;
+  transform: translateX(-400px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.ledgerDetails-exit {
+  opacity: 1;
+  left: 0;
+  transition: opacity 200ms, transform 200ms;
+}
+
+.ledgerDetails-exit-active {
+  opacity: 0;
+  transform: translateX(400px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.authScreen-enter {
+  opacity: 0;
+  top: 500;
+}
+
+.authScreen-enter-active {
+  opacity: 1;
+  transform: translateY(-500px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.authScreen-exit {
+  opacity: 1;
+  top: 0;
+}
+
+.authScreen-exit-active {
+  opacity: 0;
+  transform: translateY(500px);
+  transition: opacity 200ms, transform 200ms;
+}
