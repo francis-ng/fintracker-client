@@ -23,6 +23,7 @@
 }
 
 .ledgerList-enter-active {
+  position: absolute;
   opacity: 1;
   transform: translateX(400px);
   transition: opacity 200ms, transform 200ms;
@@ -35,6 +36,7 @@
 }
 
 .ledgerList-exit-active {
+  position: absolute;
   opacity: 0;
   transform: translateX(-400px);
   transition: opacity 200ms, transform 200ms;
@@ -47,6 +49,7 @@
 }
 
 .ledgerDetails-enter-active {
+  position: absolute;
   opacity: 1;
   transform: translateX(-400px);
   transition: opacity 200ms, transform 200ms;
@@ -59,6 +62,7 @@
 }
 
 .ledgerDetails-exit-active {
+  position: absolute;
   opacity: 0;
   transform: translateX(400px);
   transition: opacity 200ms, transform 200ms;

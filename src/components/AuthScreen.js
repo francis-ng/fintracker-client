@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { PrimaryButton, MessageBar, MessageBarType } from 'office-ui-fabric-react';
 import { Link } from 'office-ui-fabric-react/lib/Link';
+import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import authConnector from '../utils/authConnector.js';
@@ -20,6 +21,7 @@ class AuthSceen extends Component {
     this.state = {
       showLogin: true,
       showRegister: false,
+      showSpinner: false,
       regSuccess: false,
       regFailed: false,
       loginFailed: false,
@@ -67,7 +69,13 @@ class AuthSceen extends Component {
   handleLogin(event) {
     event.preventDefault();
 
+    this.setState({
+      showSpinner: true
+    });
     authConnector.login(this.state.LoginUserName, this.state.LoginPassword).then((result) => {
+      this.setState({
+        showSpinner: false
+      });
       if (result.success) {
         authUtils.saveToken(result.token);
         this.setState({
@@ -92,7 +100,13 @@ class AuthSceen extends Component {
       return;
     }
 
+    this.setState({
+      showSpinner: true
+    });
     authConnector.register(this.state.LoginUserName, this.state.LoginPassword).then((result) => {
+      this.setState({
+        showSpinner: false
+      });
       if (result.success) {
         this.setState({
           showLogin: true,
@@ -130,7 +144,10 @@ class AuthSceen extends Component {
               }
               <TextField label="User name" name="LoginUserName" value={this.state.LoginUserName} onChange={this.handleInputChange} required />
               <TextField label="Password" name="LoginPassword" value={this.state.LoginPassword} onChange={this.handleInputChange} type="password" required />
-              <PrimaryButton text="Login" type="submit" />
+              <Stack horizontal tokens={{ childrenGap: 10 }} verticalAlign="center">
+                <PrimaryButton text="Login" type="submit" />
+                { this.state.showSpinner && <Spinner size={SpinnerSize.small} /> }
+              </Stack>
               <Link onClick={this.showRegister}>Click here to register</Link>
             </Stack>
           </form>
@@ -148,7 +165,10 @@ class AuthSceen extends Component {
               <TextField label="User name" name="RegUserName" value={this.state.RegUserName} onChange={this.handleInputChange} required />
               <TextField label="Password" name="RegPassword" type="password" value={this.state.RegPassword} onChange={this.handleInputChange} required />
               <TextField label="Verify password" name="RegPasswordVerify" type="password" value={this.state.RegPasswordVerify} onChange={this.handleInputChange} onGetErrorMessage={this.verifyPassword} required />
-              <PrimaryButton text="Register" type="submit" />
+              <Stack horizontal tokens={{ childrenGap: 10 }} verticalAlign="center">
+                <PrimaryButton text="Register" type="submit" />
+                { this.state.showSpinner && <Spinner size={SpinnerSize.small} /> }
+              </Stack>
               <Link onClick={this.showLogin}>Return to login</Link>
             </Stack>
           </form>

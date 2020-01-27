@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { MessageBar, MessageBarType, DefaultPalette } from 'office-ui-fabric-react';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
-import { Label } from 'office-ui-fabric-react/lib/Label';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
-import { DetailsList, SelectionMode, DetailsListLayoutMode } from 'office-ui-fabric-react/lib/DetailsList';
+import { ShimmeredDetailsList } from 'office-ui-fabric-react/lib/ShimmeredDetailsList';
+import { SelectionMode, DetailsListLayoutMode } from 'office-ui-fabric-react/lib/DetailsList';
 import ledgerConnector from '../utils/ledgerConnector.js';
 import authUtils from './../utils/authUtils.js';
 
@@ -86,7 +86,8 @@ class LedgerDetails extends Component {
       },
       selectedTab: 'Debits',
       saveSuccess: false,
-      saveFailed: false
+      saveFailed: false,
+      dataLoaded: false
     }
   }
 
@@ -103,7 +104,11 @@ class LedgerDetails extends Component {
 
   getLedgerDetails() {
     console.log(`Loading ${this.parameters.year}/${this.parameters.month}`);
+
     ledgerConnector.getLedger(authUtils.getToken(), this.parameters.year, this.parameters.month).then((result) => {
+      this.setState({
+        dataLoaded: true
+      });
       if (result.success) {
         this.setState({
           ledger: result.data
@@ -255,12 +260,13 @@ class LedgerDetails extends Component {
             styles={{ link: {width:"50%"}, linkIsSelected: {width:"50%"} }}>
           <PivotItem headerText="Expenses" itemKey="Debits">
             <div data-is-scrollable="true">
-              <DetailsList
+              <ShimmeredDetailsList
                 items={this.state.ledger.Debits}
                 columns={this.displayprops.columns}
                 selectionMode={SelectionMode.none}
                 layoutMode={DetailsListLayoutMode.justified}
                 isHeaderVisible={true}
+                enableShimmer={!this.state.dataLoaded}
                 onRenderItemColumn={this.renderItemColumn}
               />
               <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10, padding: 32 }}>
@@ -275,12 +281,13 @@ class LedgerDetails extends Component {
           </PivotItem>
           <PivotItem headerText="Income" itemKey="Credits">
             <div data-is-scrollable="true">
-              <DetailsList
+              <ShimmeredDetailsList
                 items={this.state.ledger.Credits}
                 columns={this.displayprops.columns}
                 selectionMode={SelectionMode.none}
                 layoutMode={DetailsListLayoutMode.justified}
                 isHeaderVisible={true}
+                enableShimmer={!this.state.dataLoaded}
                 onRenderItemColumn={this.renderItemColumn}
               />
               <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10, padding: 32 }}>

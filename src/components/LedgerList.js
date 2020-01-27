@@ -4,6 +4,7 @@ import { Text } from 'office-ui-fabric-react/lib/Text';
 import { Dropdown } from 'office-ui-fabric-react/lib/Dropdown';
 import { List } from 'office-ui-fabric-react/lib/List';
 import { Stack } from 'office-ui-fabric-react/lib/Stack';
+import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import ledgerConnector from './../utils/ledgerConnector.js';
 import authUtils from './../utils/authUtils.js';
 
@@ -46,7 +47,8 @@ class LedgerList extends Component {
     ];
     this.state = {
       dropdownOptions: [],
-      displayedLedgers: []
+      displayedLedgers: [],
+      showSpinner: false
     };
   }
 
@@ -57,31 +59,29 @@ class LedgerList extends Component {
   configureDropdown() {
     let years = [];
     for (let i = 0; i < this.ledgers.length; i++) {
-      if (years.indexOf(this.ledgers[i]) === -1) {
-        years.push(parseInt(this.ledgers[i]));
+      if (years.indexOf(this.ledgers[i].Year) === -1) {
+        years.push(parseInt(this.ledgers[i].Year));
       }
     }
-    // this.ledgers.foreach((value, index, arr) => {
-    //   if (years.indexOf(value) === -1) {
-    //     years.push(parseInt(value));
-    //   }
-    // });
     years.sort((a, b) => b - a); // Descending
 
     let options = [];
     for (let i = 0; i < years.length; i++) {
       options.push({ key: years[i], text: years[i] });
     }
-    // years.foreach((value, index, arr) => {
-    //   options.push({ key: value, text: value });
-    // });
     this.setState({
       dropdownOptions: options
     });
   }
 
   updateLedgerList() {
+    this.setState({
+      showSpinner: true
+    });
     ledgerConnector.listLedgers(authUtils.getToken()).then((result) => {
+      this.setState({
+        showSpinner: false
+      });
       if (result.success) {
         this.ledgers = result.data;
         this.ledgers.sort(this.sortLedgers);
@@ -165,6 +165,7 @@ class LedgerList extends Component {
             farItems={this.farItems}
             ariaLabel=""
           />
+          { this.state.showSpinner && <Spinner size={SpinnerSize.medium} /> }
           <List items={this.state.displayedLedgers} onRenderCell={this.renderCell} />
         </Stack>
       </div>
