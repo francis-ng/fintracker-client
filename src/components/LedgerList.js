@@ -17,6 +17,7 @@ class LedgerList extends Component {
     this.onChangeHandler = this.onChangeHandler.bind(this);
     this.renderCell = this.renderCell.bind(this);
 
+    this.showingFixed = false;
     this.selectionHandler = this.props.selectHandler;
     this.loginHandler = this.props.loginHandler;
     this.months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -66,6 +67,7 @@ class LedgerList extends Component {
     years.sort((a, b) => b - a); // Descending
 
     let options = [];
+    options.push({ key: '', text: '' });
     for (let i = 0; i < years.length; i++) {
       options.push({ key: years[i], text: years[i] });
     }
@@ -99,7 +101,14 @@ class LedgerList extends Component {
   }
 
   showFixed() {
-    // TODO
+    this.selectionHandler({
+      target: {
+        dataset: {
+          year: 0,
+          month: 0
+        }
+      }
+    });
   }
 
   filterByYear(year) {
@@ -142,9 +151,16 @@ class LedgerList extends Component {
   }
 
   onChangeHandler(event, item) {
-    this.setState({
-      displayedLedgers: this.filterByYear(item.value).sort(this.sortLedgers)
-    });
+    if (item.value === '') {
+      this.setState({
+        displayedLedgers: this.ledgers
+      });
+    }
+    else {
+      this.setState({
+        displayedLedgers: this.filterByYear(item.value).sort(this.sortLedgers)
+      });
+    }
   }
 
   renderCell(item, index) {

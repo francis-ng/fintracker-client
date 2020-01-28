@@ -5,6 +5,7 @@ function getServerUrl() {
 
 function listLedgers(token) {
   var getUrl = this.getServerUrl() + '/api/ledger/list';
+
   var authHeader = new Headers({
     'Authorization': 'Bearer ' + token
   });

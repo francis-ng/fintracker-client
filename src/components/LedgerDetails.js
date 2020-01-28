@@ -22,7 +22,8 @@ class LedgerDetails extends Component {
     this.backToList = this.props.returnHandler;
     this.parameters = {
       year: this.props.selection.year,
-      month: this.props.selection.month
+      month: this.props.selection.month,
+      type: this.props.selection.year == 0 ? 'fixed' : 'regular'
     };
     this.newLedger = false;
     this.displayprops = {
@@ -76,7 +77,7 @@ class LedgerDetails extends Component {
     ];
     this.state = {
       ledger: {
-        Type: "regular",
+        Type: this.parameters.type,
         Month: this.parameters.month,
         Year: this.parameters.year,
         Debits: [],
