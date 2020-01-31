@@ -85,7 +85,9 @@ class LedgerList extends Component {
         showSpinner: false
       });
       if (result.success) {
-        this.ledgers = result.data;
+        this.ledgers = result.data.filter((item) => {
+          return item.Type === 'regular';
+        });
         this.ledgers.sort(this.sortLedgers);
         this.setState({
           displayedLedgers: this.ledgers
@@ -113,7 +115,7 @@ class LedgerList extends Component {
 
   filterByYear(year) {
     return this.ledgers.filter((item) => {
-      return item.Year == year;
+      return parseInt(item.Year) === parseInt(year);
     });
   }
 

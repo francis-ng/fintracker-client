@@ -45,17 +45,17 @@ function handleConnection() {
 
 // Worker core
 var token = authUtils.getToken();
-onmessage = (e) => {
+function onmessage(e) {
   var objectStore = db.transaction(['ledgers'], 'readwrite').objectStore('ledgers');
   objectStore.add(e.data);
-};
+}
 
 setInterval(sync, 10000);
 
 function sync() {
   if (isOnline) {
     var objectStore = db.transaction('ledgers').objectStore('ledgers');
-    objectStore.getCursor().onsuccess = (e) => {
+    objectStore.openCursor().onsuccess = (e) => {
       var cursor = e.target.result;
       if (cursor) {
         console.log('Syncing entry ' + cursor.value.key);
@@ -132,3 +132,7 @@ function addLedger(ledger) {
     }
   });
 }
+
+export default {
+  onmessage
+};

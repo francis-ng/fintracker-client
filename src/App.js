@@ -57,19 +57,20 @@ class App extends Component {
   }
 
   selectionHandler(event) {
-    let year = event.target.dataset.year;
-    let month = event.target.dataset.month;
+    let year = parseInt(event.target.dataset.year);
+    let month = parseInt(event.target.dataset.month);
+    let title = `${year} ${this.months[month]}`;
+
+    if (year === 0 && month === 0) {
+      title = 'Fixed items';
+    }
 
     this.setState({
-      title: `${year} ${this.months[month]}`
-    });
-    this.setState({
+      title: title,
       selectedLedger: {
         year: year,
         month: month
-      }
-    });
-    this.setState({
+      },
       showLedgerList: false,
       showLedger: true,
       showLogin: false

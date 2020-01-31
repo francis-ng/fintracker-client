@@ -1,6 +1,5 @@
 function getServerUrl() {
   return 'https://fintrack-image-occpy2fuaa-an.a.run.app';
-  //return 'http://localhost'
 }
 
 function listLedgers(token) {

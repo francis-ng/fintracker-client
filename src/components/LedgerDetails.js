@@ -17,13 +17,14 @@ class LedgerDetails extends Component {
     this.handleTabClick = this.handleTabClick.bind(this);
     this.renderItemColumn = this.renderItemColumn.bind(this);
     this.onChangeHandler = this.onChangeHandler.bind(this);
+    this.populateFixedItems = this.populateFixedItems.bind(this);
 
     this.loginHandler = this.props.loginHandler;
     this.backToList = this.props.returnHandler;
     this.parameters = {
       year: this.props.selection.year,
       month: this.props.selection.month,
-      type: this.props.selection.year == 0 ? 'fixed' : 'regular'
+      type: this.props.selection.year === 0 ? 'fixed' : 'regular'
     };
     this.newLedger = false;
     this.displayprops = {
@@ -119,8 +120,46 @@ class LedgerDetails extends Component {
         if (result.status === 'Not found') {
           console.log('No data found. New ledger will be created');
           this.newLedger = true;
+          if (this.state.ledger.Type === 'regular') {
+            this.populateFixedItems();
+          }
         }
         else if (result.status === 'Unauthorized') {
+          this.loginHandler();
+        }
+      }
+    });
+  }
+
+  populateFixedItems() {
+    console.log(`Loading fixed items`);
+    this.setState({
+      dataLoaded: false
+    });
+
+    ledgerConnector.getLedger(authUtils.getToken(), 0, 0).then((result) => {
+      this.setState({
+        dataLoaded: true
+      });
+      if (result.success) {
+        this.setState(prevState => ({
+          ledger: {
+            ...prevState.ledger,
+            Debits: prevState.ledger.Debits.concat({
+              Label: 'Fixed expenses',
+              Amount: result.data.DebitTotal
+            }),
+            Credits: prevState.ledger.Credits.concat({
+              Label: 'Fixed income',
+              Amount: result.data.CreditTotal
+            }),
+            DebitTotal: result.data.DebitTotal,
+            CreditTotal: result.data.CreditTotal
+          }
+        }));
+      }
+      else {
+        if (result.status === 'Unauthorized') {
           this.loginHandler();
         }
       }

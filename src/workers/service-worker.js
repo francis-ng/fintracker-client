@@ -1,5 +1,6 @@
+import syncWorker from './syncWorker';
+
 var cacheName = 'fintrackCache-v1';
-var syncWorker = new Worker('/workers/syncWorker.js');
 var appShellFiles = [
   // List all static files
   ''
@@ -11,7 +12,7 @@ syncWorker.onmessage = (e) => {
   }
 };
 
-self.addEventListener('install', (e) => {
+window.addEventListener('install', (e) => {
   console.log('[Service worker] Install');
   e.waitUntil(
     caches.open(cacheName).then((cache) => {
@@ -21,7 +22,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-self.addEventListener('fetch', (e) => {
+window.addEventListener('fetch', (e) => {
   e.respondWith(
     // Try loading through network first
     fetch(e.request).then((response) => {
@@ -49,7 +50,7 @@ self.addEventListener('fetch', (e) => {
   );
 });
 
-self.addEventListener('activate', (e) => {
+window.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(keyList.map((key) => {

@@ -1,6 +1,5 @@
 function getServerUrl() {
   return 'https://fintrack-image-occpy2fuaa-an.a.run.app';
-  //return 'http://localhost'
 }
 
 function isReachable() {
@@ -38,7 +37,7 @@ function login(username, password) {
 }
 
 function register(username, password) {
-  var url = this.getServerUrl() + '/api/user/login';
+  var url = this.getServerUrl() + '/api/user/register';
 
   return fetch(url, {
     method: 'POST',
