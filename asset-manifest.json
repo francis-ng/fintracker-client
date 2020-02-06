@@ -1,26 +1,25 @@
 {
   "files": {
-    "main.css": "/fintracker-client/static/css/main.34f503ad.chunk.css",
-    "main.js": "/fintracker-client/static/js/main.250b9d6b.chunk.js",
-    "main.js.map": "/fintracker-client/static/js/main.250b9d6b.chunk.js.map",
+    "main.css": "/fintracker-client/static/css/main.18930ee1.chunk.css",
+    "main.js": "/fintracker-client/static/js/main.0892114d.chunk.js",
+    "main.js.map": "/fintracker-client/static/js/main.0892114d.chunk.js.map",
     "runtime-main.js": "/fintracker-client/static/js/runtime-main.493a3c2f.js",
     "runtime-main.js.map": "/fintracker-client/static/js/runtime-main.493a3c2f.js.map",
-    "static/css/2.a213b667.chunk.css": "/fintracker-client/static/css/2.a213b667.chunk.css",
-    "static/js/2.92966bbb.chunk.js": "/fintracker-client/static/js/2.92966bbb.chunk.js",
-    "static/js/2.92966bbb.chunk.js.map": "/fintracker-client/static/js/2.92966bbb.chunk.js.map",
+    "static/css/2.62c6fba7.chunk.css": "/fintracker-client/static/css/2.62c6fba7.chunk.css",
+    "static/js/2.27357c27.chunk.js": "/fintracker-client/static/js/2.27357c27.chunk.js",
+    "static/js/2.27357c27.chunk.js.map": "/fintracker-client/static/js/2.27357c27.chunk.js.map",
     "index.html": "/fintracker-client/index.html",
-    "precache-manifest.07319b6bed41d8cfce88ef07fa5b0948.js": "/fintracker-client/precache-manifest.07319b6bed41d8cfce88ef07fa5b0948.js",
+    "precache-manifest.02e8b51cfc62494ce124531ddaec73b4.js": "/fintracker-client/precache-manifest.02e8b51cfc62494ce124531ddaec73b4.js",
     "service-worker.js": "/fintracker-client/service-worker.js",
-    "static/css/2.a213b667.chunk.css.map": "/fintracker-client/static/css/2.a213b667.chunk.css.map",
-    "static/css/main.34f503ad.chunk.css.map": "/fintracker-client/static/css/main.34f503ad.chunk.css.map",
-    "static/js/2.92966bbb.chunk.js.LICENSE": "/fintracker-client/static/js/2.92966bbb.chunk.js.LICENSE",
-    "static/media/onsenui.css": "/fintracker-client/static/media/ionicons.cfdc1522.ttf"
+    "static/css/2.62c6fba7.chunk.css.map": "/fintracker-client/static/css/2.62c6fba7.chunk.css.map",
+    "static/css/main.18930ee1.chunk.css.map": "/fintracker-client/static/css/main.18930ee1.chunk.css.map",
+    "static/js/2.27357c27.chunk.js.LICENSE": "/fintracker-client/static/js/2.27357c27.chunk.js.LICENSE"
   },
   "entrypoints": [
     "static/js/runtime-main.493a3c2f.js",
-    "static/css/2.a213b667.chunk.css",
-    "static/js/2.92966bbb.chunk.js",
-    "static/css/main.34f503ad.chunk.css",
-    "static/js/main.250b9d6b.chunk.js"
+    "static/css/2.62c6fba7.chunk.css",
+    "static/js/2.27357c27.chunk.js",
+    "static/css/main.18930ee1.chunk.css",
+    "static/js/main.0892114d.chunk.js"
   ]
 }
