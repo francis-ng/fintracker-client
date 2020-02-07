@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/fintracker-client/precache-manifest.8c4484302cc7e33fe8edf229f1987223.js"
+  "/fintracker-client/precache-manifest.40450bd365bde138b832c58bbdf8c796.js"
 );
 
 self.addEventListener('message', (event) => {
