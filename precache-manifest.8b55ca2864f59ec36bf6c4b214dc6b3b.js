@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "96f16dfc01910d526edef7b580abeb78",
+    "revision": "16619bf6ecf8ac522764ff18debbd47e",
     "url": "/fintracker-client/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/fintracker-client/static/css/2.62c6fba7.chunk.css"
   },
   {
-    "revision": "c22f71a91a1257752acc",
+    "revision": "60d2cce1d77ba1f01ba5",
     "url": "/fintracker-client/static/css/main.67716cc1.chunk.css"
   },
   {
@@ -20,8 +20,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/fintracker-client/static/js/2.27357c27.chunk.js.LICENSE"
   },
   {
-    "revision": "c22f71a91a1257752acc",
-    "url": "/fintracker-client/static/js/main.3a4f1883.chunk.js"
+    "revision": "60d2cce1d77ba1f01ba5",
+    "url": "/fintracker-client/static/js/main.cd9c41ba.chunk.js"
   },
   {
     "revision": "c647aadec1767a79f6d2",
