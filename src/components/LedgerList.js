@@ -80,7 +80,8 @@ class LedgerList extends Component {
     this.setState({
       showSpinner: true
     });
-    ledgerConnector.listLedgers(authUtils.getToken()).then((result) => {
+    const { accessToken } = authUtils.getToken();
+    ledgerConnector.listLedgers(accessToken).then((result) => {
       this.setState({
         showSpinner: false
       });
@@ -96,7 +97,7 @@ class LedgerList extends Component {
       }
       else {
         if (result.status === 'Unauthorized') {
-          this.loginHandler();
+          this.loginHandler(this.updateLedgerList);
         }
       }
     });

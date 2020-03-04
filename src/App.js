@@ -4,7 +4,9 @@ import { CSSTransition } from 'react-transition-group';
 import AuthScreen from './components/AuthScreen.js';
 import LedgerList from './components/LedgerList.js';
 import LedgerDetails from './components/LedgerDetails.js';
+import authConnector from './utils/authConnector.js';
 import './css/App.css';
+import authUtils from './utils/authUtils.js';
 
 class App extends Component {
   constructor(props) {
@@ -27,14 +29,35 @@ class App extends Component {
     this.months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   }
 
-  loginHandler() {
-    this.origin = this.state.title;
-    this.setState({
-      title: 'Sign in',
-      showLedgerList: false,
-      showLedger: false,
-      showLogin: true
-    });
+  loginHandler(retryFunc) {
+    const {refreshToken} = authUtils.getToken();
+
+    if (refreshToken) {
+      authConnector.renew(refreshToken).then((result) => {
+        if (result.success) {
+          authUtils.saveToken(result.accessToken, refreshToken);
+          retryFunc();
+        }
+        else {
+          this.origin = this.state.title;
+          this.setState({
+            title: 'Sign in',
+            showLedgerList: false,
+            showLedger: false,
+            showLogin: true
+          });
+        }
+      });
+    }
+    else {
+      this.origin = this.state.title;
+      this.setState({
+        title: 'Sign in',
+        showLedgerList: false,
+        showLedger: false,
+        showLogin: true
+      });
+    }
   }
 
   loggedIn() {

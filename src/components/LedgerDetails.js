@@ -107,7 +107,8 @@ class LedgerDetails extends Component {
   getLedgerDetails() {
     console.log(`Loading ${this.parameters.year}/${this.parameters.month}`);
 
-    ledgerConnector.getLedger(authUtils.getToken(), this.parameters.year, this.parameters.month).then((result) => {
+    const { accessToken } = authUtils.getToken();
+    ledgerConnector.getLedger(accessToken, this.parameters.year, this.parameters.month).then((result) => {
       this.setState({
         dataLoaded: true
       });
@@ -125,7 +126,7 @@ class LedgerDetails extends Component {
           }
         }
         else if (result.status === 'Unauthorized') {
-          this.loginHandler();
+          this.loginHandler(this.getLedgerDetails);
         }
       }
     });
@@ -137,7 +138,8 @@ class LedgerDetails extends Component {
       dataLoaded: false
     });
 
-    ledgerConnector.getLedger(authUtils.getToken(), 0, 0).then((result) => {
+    const { accessToken } = authUtils.getToken();
+    ledgerConnector.getLedger(accessToken, 0, 0).then((result) => {
       this.setState({
         dataLoaded: true
       });
@@ -160,7 +162,7 @@ class LedgerDetails extends Component {
       }
       else {
         if (result.status === 'Unauthorized') {
-          this.loginHandler();
+          this.loginHandler(this.populateFixedItems);
         }
       }
     });
@@ -185,8 +187,9 @@ class LedgerDetails extends Component {
       saveSuccess: false,
       saveFailed: false
     });
+    const { accessToken } = authUtils.getToken();
     if (this.newLedger) {
-      ledgerConnector.addLedger(authUtils.getToken(), this.state.ledger).then((result) => {
+      ledgerConnector.addLedger(accessToken, this.state.ledger).then((result) => {
         if (result.success) {
           this.setState({
             saveSuccess: true
@@ -200,7 +203,7 @@ class LedgerDetails extends Component {
       });
     }
     else {
-      ledgerConnector.updateLedger(authUtils.getToken(), this.state.ledger).then((result) => {
+      ledgerConnector.updateLedger(accessToken, this.state.ledger).then((result) => {
         if (result.success) {
           this.setState({
             saveSuccess: true

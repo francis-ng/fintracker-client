@@ -77,7 +77,7 @@ class AuthSceen extends Component {
         showSpinner: false
       });
       if (result.success) {
-        authUtils.saveToken(result.token);
+        authUtils.saveToken(result.accessToken, result.refreshToken);
         this.setState({
           regSuccess: false,
           loginFailed: false
@@ -108,12 +108,14 @@ class AuthSceen extends Component {
         showSpinner: false
       });
       if (result.success) {
+        authUtils.saveToken(result.accessToken, result.refreshToken);
         this.setState({
           showLogin: true,
           showRegister: false,
-          regSuccess: true,
+          regSuccess: false,
           regFailed: false
         });
+        this.loggedIn();
       }
       else {
         this.setState({

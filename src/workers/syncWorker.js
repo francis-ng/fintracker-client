@@ -44,7 +44,7 @@ function handleConnection() {
 }
 
 // Worker core
-var token = authUtils.getToken();
+var { accessToken } = authUtils.getToken();
 function onmessage(e) {
   var objectStore = db.transaction(['ledgers'], 'readwrite').objectStore('ledgers');
   objectStore.add(e.data);
@@ -78,7 +78,7 @@ function sync() {
 }
 
 function syncLedger(ledger) {
-  ledgerConnector.getLedger(token, ledger.Year, ledger.Month).then((result) => {
+  ledgerConnector.getLedger(accessToken, ledger.Year, ledger.Month).then((result) => {
     if (result.success) {
       const serverUpd = Date.parse(result.data.UpdatedAt);
       const localUpd = Date.parse(ledger.UpdatedAt);
@@ -106,7 +106,7 @@ function syncLedger(ledger) {
 }
 
 function updateLedger(ledger) {
-  ledgerConnector.updateLedger(token, ledger).then((result) => {
+  ledgerConnector.updateLedger(accessToken, ledger).then((result) => {
     if (result.success) {
       return true;
     }
@@ -120,7 +120,7 @@ function updateLedger(ledger) {
 }
 
 function addLedger(ledger) {
-  ledgerConnector.addLedger(token, ledger).then((result) => {
+  ledgerConnector.addLedger(accessToken, ledger).then((result) => {
     if (result.success) {
       return true;
     }

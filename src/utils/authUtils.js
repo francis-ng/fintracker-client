@@ -1,9 +1,13 @@
 function getToken() {
-  return localStorage.getItem('authToken');
+  return {
+    accessToken: localStorage.getItem('accessToken'),
+    refreshToken: localStorage.getItem('refreshToken')
+  };
 }
 
-function saveToken(token) {
-  localStorage.setItem('authToken', token);
+function saveToken(accessToken, refreshToken) {
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
 }
 
 export default {

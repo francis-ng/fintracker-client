@@ -24,7 +24,8 @@ function login(username, password) {
       return response.json().then((data) => {
         return {
           success: true,
-          token: data.token
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken
         };
       });
     }
@@ -45,9 +46,37 @@ function register(username, password) {
     body: JSON.stringify({ UserName: username, Password: password })
   }).then((response) => {
     if (response.ok) {
+      return response.json().then((data) => {
+        return {
+          success: true,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken
+        };
+      });
+    }
+    else {
       return {
-        success: true
+        success: false
       };
+    }
+  });
+}
+
+function renew(refreshToken) {
+  var url = this.getServerUrl() + '/api/user/renew';
+
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: `"${refreshToken}"`
+  }).then((response) => {
+    if (response.ok) {
+      return response.json().then((data) => {
+        return {
+          success: true,
+          accessToken: data.accessToken
+        };
+      });
     }
     else {
       return {
@@ -61,5 +90,6 @@ export default {
   getServerUrl,
   isReachable,
   login,
-  register
+  register,
+  renew
 };
