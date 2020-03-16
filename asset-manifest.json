@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/fintracker-client/static/css/main.5bd4191f.chunk.css",
-    "main.js": "/fintracker-client/static/js/main.eb214a8d.chunk.js",
-    "main.js.map": "/fintracker-client/static/js/main.eb214a8d.chunk.js.map",
+    "main.js": "/fintracker-client/static/js/main.f99a7d91.chunk.js",
+    "main.js.map": "/fintracker-client/static/js/main.f99a7d91.chunk.js.map",
     "runtime-main.js": "/fintracker-client/static/js/runtime-main.3dadb505.js",
     "runtime-main.js.map": "/fintracker-client/static/js/runtime-main.3dadb505.js.map",
     "static/css/2.93ba255e.chunk.css": "/fintracker-client/static/css/2.93ba255e.chunk.css",
     "static/js/2.2c5a3706.chunk.js": "/fintracker-client/static/js/2.2c5a3706.chunk.js",
     "static/js/2.2c5a3706.chunk.js.map": "/fintracker-client/static/js/2.2c5a3706.chunk.js.map",
     "index.html": "/fintracker-client/index.html",
-    "precache-manifest.71d84cbc754921d3fc7a0803d2f39c34.js": "/fintracker-client/precache-manifest.71d84cbc754921d3fc7a0803d2f39c34.js",
+    "precache-manifest.68e5089eb8cda2b6cce384514a280dd8.js": "/fintracker-client/precache-manifest.68e5089eb8cda2b6cce384514a280dd8.js",
     "service-worker.js": "/fintracker-client/service-worker.js",
     "static/css/2.93ba255e.chunk.css.map": "/fintracker-client/static/css/2.93ba255e.chunk.css.map",
     "static/css/main.5bd4191f.chunk.css.map": "/fintracker-client/static/css/main.5bd4191f.chunk.css.map",
@@ -20,6 +20,6 @@
     "static/css/2.93ba255e.chunk.css",
     "static/js/2.2c5a3706.chunk.js",
     "static/css/main.5bd4191f.chunk.css",
-    "static/js/main.eb214a8d.chunk.js"
+    "static/js/main.f99a7d91.chunk.js"
   ]
 }
