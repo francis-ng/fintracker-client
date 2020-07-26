@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { Text } from 'office-ui-fabric-react/lib/Text';
 import { Dropdown } from 'office-ui-fabric-react/lib/Dropdown';
@@ -8,60 +8,28 @@ import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
 import ledgerConnector from './../utils/ledgerConnector.js';
 import authUtils from './../utils/authUtils.js';
 
-class LedgerList extends Component {
-  constructor(props) {
-    super(props);
-    this.updateLedgerList = this.updateLedgerList.bind(this);
-    this.addLedger = this.addLedger.bind(this);
-    this.showFixed = this.showFixed.bind(this);
-    this.onChangeHandler = this.onChangeHandler.bind(this);
-    this.renderCell = this.renderCell.bind(this);
+const LedgerList = (props) => {
+  const selectionHandler = props.selectHandler;
+  const loginHandler = props.loginHandler;
+  const months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-    this.showingFixed = false;
-    this.selectionHandler = this.props.selectHandler;
-    this.loginHandler = this.props.loginHandler;
-    this.months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    this.ledgers = [];
-    this.commandItems = [
-      {
-        key: 'new',
-        text: 'New item',
-        iconProps: { iconName: 'Add' },
-        onClick: this.addLedger
-      }
-    ];
-    this.farItems = [
-      {
-        key: 'fixed',
-        text: 'Fixed',
-        iconProps: { iconName: 'Calendar' },
-        onClick: this.showFixed
-      },
-      {
-        key: 'refresh',
-        text: 'Refresh',
-        ariaLabel: 'Refresh',
-        iconOnly: true,
-        iconProps: { iconName: 'Refresh' },
-        onClick: this.updateLedgerList
-      }
-    ];
-    this.state = {
-      dropdownOptions: [],
-      displayedLedgers: [],
-      showSpinner: false
-    };
+  const ledgers = useRef([]);
+  const [dropdownOptions, setDropdownOptions] = useState([]);
+  const [displayedLedgers, setDisplayedLedgers] = useState([]);
+  const [showSpinner, setShowSpinner] = useState(false);
+
+  const sortLedgers = (a, b) => {
+    if (a.Year !== b.Year) {
+      return b.Year - a.Year;
+    }
+    return b.Month - a.Month;
   }
 
-  componentDidMount() {
-    this.updateLedgerList();
-  }
-
-  configureDropdown() {
+  const configureDropdown = () => {
     let years = [];
-    for (let i = 0; i < this.ledgers.length; i++) {
-      if (years.indexOf(this.ledgers[i].Year) === -1) {
-        years.push(parseInt(this.ledgers[i].Year));
+    for (let i = 0; i < ledgers.current.length; i++) {
+      if (years.indexOf(ledgers.current[i].Year) === -1) {
+        years.push(parseInt(ledgers.current[i].Year));
       }
     }
     years.sort((a, b) => b - a); // Descending
@@ -71,40 +39,34 @@ class LedgerList extends Component {
     for (let i = 0; i < years.length; i++) {
       options.push({ key: years[i], text: years[i] });
     }
-    this.setState({
-      dropdownOptions: options
-    });
+    setDropdownOptions(options);
   }
 
-  updateLedgerList() {
-    this.setState({
-      showSpinner: true
-    });
+  const updateLedgerList = () => {
+    setShowSpinner(true);
     const { accessToken } = authUtils.getToken();
     ledgerConnector.listLedgers(accessToken).then((result) => {
-      this.setState({
-        showSpinner: false
-      });
+      setShowSpinner(false);
       if (result.success) {
-        this.ledgers = result.data.filter((item) => {
+        ledgers.current = result.data.filter((item) => {
           return item.Type === 'regular';
         });
-        this.ledgers.sort(this.sortLedgers);
-        this.setState({
-          displayedLedgers: this.ledgers
-        });
-        this.configureDropdown();
+        ledgers.current.sort(sortLedgers);
+        setDisplayedLedgers(ledgers.current);
+        configureDropdown();
       }
       else {
         if (result.status === 'Unauthorized') {
-          this.loginHandler(this.updateLedgerList);
+          loginHandler(updateLedgerList);
         }
       }
     });
   }
 
-  showFixed() {
-    this.selectionHandler({
+  useEffect(updateLedgerList, []);
+
+  const showFixed = () => {
+    selectionHandler({
       target: {
         dataset: {
           year: 0,
@@ -114,27 +76,20 @@ class LedgerList extends Component {
     });
   }
 
-  filterByYear(year) {
-    return this.ledgers.filter((item) => {
+  const filterByYear = (year) => {
+    return ledgers.current.filter((item) => {
       return parseInt(item.Year) === parseInt(year);
     });
   }
 
-  sortLedgers(a, b) {
-    if (a.Year !== b.Year) {
-      return b.Year - a.Year;
-    }
-    return b.Month - a.Month;
-  }
-
-  addLedger() {
+  const addLedger = () => {
     let date = new Date();
     let latestYear = date.getFullYear();
     let latestMonth = date.getMonth() + 1;
 
-    if (this.ledgers.length > 0) {
-      latestYear = parseInt(this.ledgers[0].Year);
-      latestMonth = parseInt(this.ledgers[0].Month);
+    if (ledgers.current.length > 0) {
+      latestYear = parseInt(ledgers.current[0].Year);
+      latestMonth = parseInt(ledgers.current[0].Month);
 
       latestMonth++;
       if (latestMonth === 13) {
@@ -143,7 +98,7 @@ class LedgerList extends Component {
       }
     }
 
-    this.selectionHandler({
+    selectionHandler({
       target: {
         dataset: {
           year: latestYear,
@@ -153,43 +108,62 @@ class LedgerList extends Component {
     });
   }
 
-  onChangeHandler(event, item) {
+  const onChangeHandler = (event, item) => {
     if (item.value === '') {
-      this.setState({
-        displayedLedgers: this.ledgers
-      });
+      setDisplayedLedgers(ledgers.current);
     }
     else {
-      this.setState({
-        displayedLedgers: this.filterByYear(item.value).sort(this.sortLedgers)
-      });
+      setDisplayedLedgers(filterByYear(item.value).sort(sortLedgers));
     }
   }
 
-  renderCell(item, index) {
+  const renderCell = (item, index) => {
     return (
-      <div className="list-item" onClick={this.selectionHandler} data-year={item.Year} data-month={item.Month}>
-        <Text data-year={item.Year} data-month={item.Month}>{`${item.Year} ${this.months[item.Month]}`}</Text>
+      <div className="list-item" onClick={selectionHandler} data-year={item.Year} data-month={item.Month}>
+        <Text data-year={item.Year} data-month={item.Month}>{`${item.Year} ${months[item.Month]}`}</Text>
       </div>
     );
   }
 
-  render() {
-    return (
-      <div data-is-scrollable="true">
-        <Stack>
-          <Dropdown placeholder="Filter by year" options={this.state.dropdownOptions} onChange={this.onChangeHandler} />
-          <CommandBar
-            items={this.commandItems}
-            farItems={this.farItems}
-            ariaLabel=""
-          />
-          { this.state.showSpinner && <Spinner size={SpinnerSize.medium} /> }
-          <List items={this.state.displayedLedgers} onRenderCell={this.renderCell} />
-        </Stack>
-      </div>
-    );
-  }
+  const commandItems = [
+    {
+      key: 'new',
+      text: 'New item',
+      iconProps: { iconName: 'Add' },
+      onClick: addLedger
+    }
+  ];
+  const farItems = [
+    {
+      key: 'fixed',
+      text: 'Fixed',
+      iconProps: { iconName: 'Calendar' },
+      onClick: showFixed
+    },
+    {
+      key: 'refresh',
+      text: 'Refresh',
+      ariaLabel: 'Refresh',
+      iconOnly: true,
+      iconProps: { iconName: 'Refresh' },
+      onClick: updateLedgerList
+    }
+  ];
+
+  return (
+    <div data-is-scrollable="true">
+      <Stack>
+        <Dropdown placeholder="Filter by year" options={dropdownOptions} onChange={onChangeHandler} />
+        <CommandBar
+          items={commandItems}
+          farItems={farItems}
+          ariaLabel=""
+        />
+        { showSpinner && <Spinner size={SpinnerSize.medium} /> }
+        <List items={displayedLedgers} onRenderCell={renderCell} />
+      </Stack>
+    </div>
+  );
 }
 
 export default LedgerList;

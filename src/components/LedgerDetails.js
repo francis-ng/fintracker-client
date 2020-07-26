@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import { MessageBar, MessageBarType, DefaultPalette } from 'office-ui-fabric-react';
+import React, { useEffect, useRef, useReducer, useState } from 'react';
+import { MessageBar, MessageBarType, IconButton } from 'office-ui-fabric-react';
 import { CommandBar } from 'office-ui-fabric-react/lib/CommandBar';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { Pivot, PivotItem } from 'office-ui-fabric-react/lib/Pivot';
@@ -9,352 +9,339 @@ import { SelectionMode, DetailsListLayoutMode } from 'office-ui-fabric-react/lib
 import ledgerConnector from '../utils/ledgerConnector.js';
 import authUtils from './../utils/authUtils.js';
 
-class LedgerDetails extends Component {
-  constructor(props) {
-    super(props);
-    this.save = this.save.bind(this);
-    this.addItem = this.addItem.bind(this);
-    this.handleTabClick = this.handleTabClick.bind(this);
-    this.renderItemColumn = this.renderItemColumn.bind(this);
-    this.onChangeHandler = this.onChangeHandler.bind(this);
-    this.populateFixedItems = this.populateFixedItems.bind(this);
-
-    this.loginHandler = this.props.loginHandler;
-    this.backToList = this.props.returnHandler;
-    this.parameters = {
-      year: this.props.selection.year,
-      month: this.props.selection.month,
-      type: this.props.selection.year === 0 ? 'fixed' : 'regular'
-    };
-    this.newLedger = false;
-    this.displayprops = {
-      columns: [
-        {
-          key: 'item',
-          name: 'Item',
-          fieldName: 'Label',
-          isPadded: true
-        },
-        {
-          key: 'amount',
-          name: 'Amount',
-          fieldName: 'Amount',
-          isPadded: true
-        },
-      ],
-      stackItemStyles: {
-        root: {
-          alignItems: 'center',
-          justifyContent: 'right',
-          display: 'grid'
-        }
-      }
-    }
-    this.commandItems = [
-      {
-        key: 'back',
-        text: 'Back',
-        ariaLabel: 'Back',
-        iconOnly: true,
-        iconProps: { iconName: 'Back' },
-        onClick: this.backToList
-      },
-      {
-        key: 'new',
-        text: 'New item',
-        iconProps: { iconName: 'Add' },
-        onClick: this.addItem
-      }
-    ];
-    this.farItems = [
-      {
-        key: 'save',
-        text: 'Save',
-        ariaLabel: 'Save',
-        iconOnly: true,
-        iconProps: { iconName: 'CheckMark' },
-        onClick: this.save
-      }
-    ];
-    this.state = {
-      ledger: {
-        Type: this.parameters.type,
-        Month: this.parameters.month,
-        Year: this.parameters.year,
-        Debits: [],
-        DebitTotal: "",
-        Credits: [],
-        CreditTotal: ""
-      },
-      selectedTab: 'Debits',
-      saveSuccess: false,
-      saveFailed: false,
-      dataLoaded: false
-    }
+const calculateTotal = (total, current) => {
+  if (current.Amount) {
+    return total + parseInt(current.Amount);
   }
+  return total;
+}
 
-  componentDidMount() {
-    this.getLedgerDetails();
+const ledgerReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET':
+      return action.ledger;
+    case 'ADD_FIXED':
+      return {
+        ...state,
+        Debits: state.Debits.concat({
+          Label: 'Fixed expenses',
+          Amount: action.debitTotal
+        }),
+        Credits: state.Credits.concat({
+          Label: 'Fixed income',
+          Amount: action.creditTotal
+        }),
+        DebitTotal: action.debitTotal,
+        CreditTotal: action.creditTotal
+      };
+    case 'ADD':
+      return {
+        ...state,
+        [action.book]: state[action.book].concat({
+          Label: '',
+          Amount: ''
+        })
+      };
+    case 'UPDATE_INCOME':
+      const newCredits = state.Credits.map((el, i) => {
+        if (i === action.index) return { ...el, [action.field]: action.value };
+        else return el;
+      });
+      const creditTotal = newCredits.reduce(calculateTotal, 0);
+      return {
+        ...state,
+        Credits: newCredits,
+        CreditTotal: creditTotal
+      };
+    case 'UPDATE_EXPENSE':
+      const newDebits = state.Debits.map((el, i) => {
+        if (i === action.index) return { ...el, [action.field]: action.value };
+        else return el;
+      });
+      console.log(newDebits);
+      const debitTotal = newDebits.reduce(calculateTotal, 0);
+      return {
+        ...state,
+        Debits: newDebits,
+        DebitTotal: debitTotal
+      };
+    case 'DELETE':
+      state[action.book].splice(action.index, 1);
+      return {
+        ...state,
+        [action.book]: state[action.book]
+      };
+    default:
+      throw new Error();
   }
+};
 
-  componentDidUpdate(prevProps) {
-    if (this.props.selection.Year !== prevProps.selection.Year &&
-        this.props.selection.Month !== prevProps.selection.Month) {
-      this.getLedgerDetails();
-    }
-  }
+const LedgerDetails = (props) => {
+  const loginHandler = props.loginHandler;
+  const backToList = props.returnHandler;
+  const parameters = {
+    year: props.selection.year,
+    month: props.selection.month,
+    type: props.selection.year === 0 ? 'fixed' : 'regular'
+  };
+  const newLedger = useRef(false);
+  const [ledger, dispatchLedger] = useReducer(ledgerReducer, {
+    Type: parameters.type,
+    Month: parameters.month,
+    Year: parameters.year,
+    Debits: [],
+    DebitTotal: "",
+    Credits: [],
+    CreditTotal: ""
+  });
 
-  getLedgerDetails() {
-    console.log(`Loading ${this.parameters.year}/${this.parameters.month}`);
+  const [selectedTab, setSelectedTab] = useState('Debits');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  const populateFixedItems = () => {
+    console.log(`Loading fixed items`);
+    setDataLoaded(false);
 
     const { accessToken } = authUtils.getToken();
-    ledgerConnector.getLedger(accessToken, this.parameters.year, this.parameters.month).then((result) => {
-      this.setState({
-        dataLoaded: true
-      });
+    ledgerConnector.getLedger(accessToken, 0, 0).then((result) => {
+      setDataLoaded(true);
       if (result.success) {
-        this.setState({
-          ledger: result.data
-        });
+        dispatchLedger({ type: 'ADD_FIXED', debitTotal: result.data.DebitTotal, creditTotal: result.data.CreditTotal });
+      }
+      else {
+        if (result.status === 'Unauthorized') {
+          loginHandler(populateFixedItems);
+        }
+      }
+    });
+  }
+
+  const getLedgerDetails = () => {
+    console.log(`Loading ${parameters.year}/${parameters.month}`);
+
+    const { accessToken } = authUtils.getToken();
+    ledgerConnector.getLedger(accessToken, parameters.year, parameters.month).then((result) => {
+      setDataLoaded(true);
+      if (result.success) {
+        dispatchLedger({ type: 'SET', ledger: result.data });
       }
       else {
         if (result.status === 'Not found') {
           console.log('No data found. New ledger will be created');
-          this.newLedger = true;
-          if (this.state.ledger.Type === 'regular') {
-            this.populateFixedItems();
+          newLedger.current = true;
+          if (ledger.Type === 'regular') {
+            populateFixedItems();
           }
         }
         else if (result.status === 'Unauthorized') {
-          this.loginHandler(this.getLedgerDetails);
+          loginHandler(getLedgerDetails);
         }
       }
     });
   }
 
-  populateFixedItems() {
-    console.log(`Loading fixed items`);
-    this.setState({
-      dataLoaded: false
-    });
+  useEffect(getLedgerDetails, []);
 
-    const { accessToken } = authUtils.getToken();
-    ledgerConnector.getLedger(accessToken, 0, 0).then((result) => {
-      this.setState({
-        dataLoaded: true
-      });
-      if (result.success) {
-        this.setState(prevState => ({
-          ledger: {
-            ...prevState.ledger,
-            Debits: prevState.ledger.Debits.concat({
-              Label: 'Fixed expenses',
-              Amount: result.data.DebitTotal
-            }),
-            Credits: prevState.ledger.Credits.concat({
-              Label: 'Fixed income',
-              Amount: result.data.CreditTotal
-            }),
-            DebitTotal: result.data.DebitTotal,
-            CreditTotal: result.data.CreditTotal
-          }
-        }));
-      }
-      else {
-        if (result.status === 'Unauthorized') {
-          this.loginHandler(this.populateFixedItems);
-        }
-      }
-    });
+  const addItem = () => {
+    console.log(`Adding new item to ${selectedTab}`);
+
+    dispatchLedger({ type: 'ADD', book: selectedTab });
   }
 
-  addItem() {
-    console.log(`Adding new item to ${this.state.selectedTab}`);
-
-    this.setState(prevState => ({
-      ledger: {
-        ...prevState.ledger,
-        [this.state.selectedTab]: prevState.ledger[this.state.selectedTab].concat({
-          Label: '',
-          Amount: ''
-        })
-      }
-    }));
+  const deleteItem = (selectedTab, index) => {
+    dispatchLedger({ type: 'DELETE', index: index, book: selectedTab });
   }
 
-  save() {
-    this.setState({
-      saveSuccess: false,
-      saveFailed: false
-    });
+  const save = () => {
+    setSaveSuccess(false);
+    setSaveFailed(false);
     const { accessToken } = authUtils.getToken();
-    if (this.newLedger) {
-      ledgerConnector.addLedger(accessToken, this.state.ledger).then((result) => {
+    if (newLedger.current) {
+      ledgerConnector.addLedger(accessToken, ledger).then((result) => {
         if (result.success) {
-          this.setState({
-            saveSuccess: true
-          });
+          setSaveSuccess(true);
         }
         else {
-          this.setState({
-            saveFailed: true
-          });
+          setSaveFailed(true);
         }
       });
     }
     else {
-      ledgerConnector.updateLedger(accessToken, this.state.ledger).then((result) => {
+      ledgerConnector.updateLedger(accessToken, ledger).then((result) => {
         if (result.success) {
-          this.setState({
-            saveSuccess: true
-          });
+          setSaveSuccess(true);
         }
         else {
-          this.setState({
-            saveFailed: true
-          });
+          setSaveFailed(true);
         }
       });
     }
   }
 
-  calculateTotal(total, current) {
-    if (current.Amount) {
-      return total + parseInt(current.Amount);
-    }
-    return total;
-  }
-
-  handleTabClick(item) {
-    this.setState({
-      selectedTab: item.props.itemKey
-    });
-  }
-
-  onChangeHandler(event) {
+  const onChangeHandler = (event) => {
     const value = event.target.value;
     const name = event.target.name;
     const index = parseInt(event.target.dataset.index);
-    console.log(`Updating ${name} of item ${index} of ${this.state.selectedTab}`);
+    console.log(`Updating ${name} of item ${index} of ${selectedTab}`);
 
-    this.setState(prevState => ({
-      ledger: {
-        ...prevState.ledger,
-        [this.state.selectedTab]: prevState.ledger[this.state.selectedTab].map((el, i) => i === index ? {
-          ...el, [name]: value
-        } : el)
-      }
-    }), () => {
-      if (this.state.selectedTab === 'Debits') {
-        this.setState(prevState => ({
-          ledger: {
-            ...prevState.ledger,
-            DebitTotal: prevState.ledger.Debits.reduce(this.calculateTotal, 0)
-          }
-        }));
-      }
-      else {
-        this.setState(prevState => ({
-          ledger: {
-            ...prevState.ledger,
-            CreditTotal: prevState.ledger.Credits.reduce(this.calculateTotal, 0)
-          }
-        }));
-      }
-    });
+    if (selectedTab === 'Credits') {
+      dispatchLedger({ type: 'UPDATE_INCOME', index: index, field: name, value: value });
+    }
+    else {
+      dispatchLedger({ type: 'UPDATE_EXPENSE', index: index, field: name, value: value });
+    }
   }
 
-  renderItemColumn(item, index, column) {
+  const renderItemColumn = (item, index, column) => {
     switch (column.key) {
       case 'item':
-        return <TextField ariaLabel="Item" name="Label" data-index={index} value={this.state.ledger[this.state.selectedTab][index].Label} onChange={this.onChangeHandler} />;
+        return <TextField ariaLabel="Item" name="Label" data-index={index} value={ledger[selectedTab][index].Label} onChange={onChangeHandler} />;
 
       case 'amount':
-        return <TextField ariaLabel="Amount" name="Amount" type="number" data-index={index} value={this.state.ledger[this.state.selectedTab][index].Amount} onChange={this.onChangeHandler} />;
+        return <TextField ariaLabel="Amount" name="Amount" type="number" data-index={index} value={ledger[selectedTab][index].Amount} onChange={onChangeHandler} />;
+
+      case 'delete':
+        return <IconButton iconProps={{ iconName: 'Cancel' }} title="Delete" ariaLabel="Delete" onClick={() => deleteItem(selectedTab, index) } />
 
       default:
         return;
     }
   }
 
-  render() {
-    return (
-      <div>
-        {
-          this.state.saveSuccess &&
-          <MessageBar messageBarType={MessageBarType.success} isMultiline={false}>
-            Saved
-          </MessageBar>
-        }
-        {
-          this.state.saveFailed &&
-          <MessageBar messageBarType={MessageBarType.error} isMultiline={false}>
-            Could not save. Please try again.
-          </MessageBar>
-        }
-        <CommandBar
-          items={this.commandItems}
-          farItems={this.farItems}
-          ariaLabel=""
-        />
-        <Pivot
-            selectedKey={this.state.selectedTab}
-            onLinkClick={this.handleTabClick}
-            styles={{ link: {width:"50%"}, linkIsSelected: {width:"50%"} }}>
-          <PivotItem headerText="Expenses" itemKey="Debits">
-            <div data-is-scrollable="true">
-              <ShimmeredDetailsList
-                items={this.state.ledger.Debits}
-                columns={this.displayprops.columns}
-                selectionMode={SelectionMode.none}
-                layoutMode={DetailsListLayoutMode.justified}
-                isHeaderVisible={true}
-                enableShimmer={!this.state.dataLoaded}
-                onRenderItemColumn={this.renderItemColumn}
-              />
-              <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10, padding: 32 }}>
-              <Stack.Item grow={5} styles={this.displayprops.stackItemStyles}>
-                  Total
-                </Stack.Item>
-                <Stack.Item grow styles={this.displayprops.stackItemStyles}>
-                  {this.state.ledger.DebitTotal}
-                </Stack.Item>
-              </Stack>
-            </div>
-          </PivotItem>
-          <PivotItem headerText="Income" itemKey="Credits">
-            <div data-is-scrollable="true">
-              <ShimmeredDetailsList
-                items={this.state.ledger.Credits}
-                columns={this.displayprops.columns}
-                selectionMode={SelectionMode.none}
-                layoutMode={DetailsListLayoutMode.justified}
-                isHeaderVisible={true}
-                enableShimmer={!this.state.dataLoaded}
-                onRenderItemColumn={this.renderItemColumn}
-              />
-              <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10, padding: 32 }}>
-                <Stack.Item grow={5} styles={this.displayprops.stackItemStyles}>
-                  Total
-                </Stack.Item>
-                <Stack.Item grow styles={this.displayprops.stackItemStyles}>
-                  {this.state.ledger.CreditTotal}
-                </Stack.Item>
-              </Stack>
-            </div>
-          </PivotItem>
-        </Pivot>
-        <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10, padding: 32 }}>
-          <Stack.Item grow={5} styles={this.displayprops.stackItemStyles}>
-            <b>Net</b>
-          </Stack.Item>
-          <Stack.Item grow styles={this.displayprops.stackItemStyles}>
-            <b>{this.state.ledger.CreditTotal - this.state.ledger.DebitTotal}</b>
-          </Stack.Item>
-        </Stack>
-      </div>
-    );
+  const displayprops = {
+    columns: [
+      {
+        key: 'item',
+        name: 'Item',
+        fieldName: 'Label',
+        minWidth: 150
+      },
+      {
+        key: 'amount',
+        name: 'Amount',
+        fieldName: 'Amount',
+        maxWidth: 80
+      },
+      {
+        key: 'delete',
+        name: 'Delete',
+        fieldName: '',
+        maxWidth: 16
+      }
+    ],
+    stackItemStyles: {
+      root: {
+        alignItems: 'center',
+        justifyContent: 'right',
+        display: 'grid'
+      }
+    }
   }
+  const commandItems = [
+    {
+      key: 'back',
+      text: 'Back',
+      ariaLabel: 'Back',
+      iconOnly: true,
+      iconProps: { iconName: 'Back' },
+      onClick: backToList
+    },
+    {
+      key: 'new',
+      text: 'New item',
+      iconProps: { iconName: 'Add' },
+      onClick: addItem
+    }
+  ];
+  const farItems = [
+    {
+      key: 'save',
+      text: 'Save',
+      ariaLabel: 'Save',
+      iconOnly: true,
+      iconProps: { iconName: 'CheckMark' },
+      onClick: save
+    }
+  ];
+
+  return (
+    <div>
+      {
+        saveSuccess &&
+        <MessageBar messageBarType={MessageBarType.success} isMultiline={false}>
+          Saved
+        </MessageBar>
+      }
+      {
+        saveFailed &&
+        <MessageBar messageBarType={MessageBarType.error} isMultiline={false}>
+          Could not save. Please try again.
+        </MessageBar>
+      }
+      <CommandBar
+        items={commandItems}
+        farItems={farItems}
+        ariaLabel=""
+      />
+      <Pivot
+          selectedKey={selectedTab}
+          onLinkClick={(item) => setSelectedTab(item.props.itemKey)}
+          styles={{ link: {width:"50%"}, linkIsSelected: {width:"50%"} }}>
+        <PivotItem headerText="Expenses" itemKey="Debits">
+          <div data-is-scrollable="true">
+            <ShimmeredDetailsList
+              items={ledger.Debits}
+              columns={displayprops.columns}
+              selectionMode={SelectionMode.none}
+              layoutMode={DetailsListLayoutMode.justified}
+              isHeaderVisible={true}
+              enableShimmer={!dataLoaded}
+              onRenderItemColumn={renderItemColumn}
+            />
+            <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10, padding: 32 }}>
+            <Stack.Item grow={5} styles={displayprops.stackItemStyles}>
+                Total
+              </Stack.Item>
+              <Stack.Item grow styles={displayprops.stackItemStyles}>
+                {ledger.DebitTotal}
+              </Stack.Item>
+            </Stack>
+          </div>
+        </PivotItem>
+        <PivotItem headerText="Income" itemKey="Credits">
+          <div data-is-scrollable="true">
+            <ShimmeredDetailsList
+              items={ledger.Credits}
+              columns={displayprops.columns}
+              selectionMode={SelectionMode.none}
+              layoutMode={DetailsListLayoutMode.justified}
+              isHeaderVisible={true}
+              enableShimmer={!dataLoaded}
+              onRenderItemColumn={renderItemColumn}
+            />
+            <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10, padding: 32 }}>
+              <Stack.Item grow={5} styles={displayprops.stackItemStyles}>
+                Total
+              </Stack.Item>
+              <Stack.Item grow styles={displayprops.stackItemStyles}>
+                {ledger.CreditTotal}
+              </Stack.Item>
+            </Stack>
+          </div>
+        </PivotItem>
+      </Pivot>
+      <Stack horizontal horizontalAlign="end" tokens={{ childrenGap: 10, padding: 32 }}>
+        <Stack.Item grow={5} styles={displayprops.stackItemStyles}>
+          <b>Net</b>
+        </Stack.Item>
+        <Stack.Item grow styles={displayprops.stackItemStyles}>
+          <b>{ledger.CreditTotal - ledger.DebitTotal}</b>
+        </Stack.Item>
+      </Stack>
+    </div>
+  );
 }
 
 export default LedgerDetails;

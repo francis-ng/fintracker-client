@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { PrimaryButton, MessageBar, MessageBarType } from 'office-ui-fabric-react';
 import { Link } from 'office-ui-fabric-react/lib/Link';
 import { Spinner, SpinnerSize } from 'office-ui-fabric-react/lib/Spinner';
@@ -7,177 +7,135 @@ import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import authConnector from '../utils/authConnector.js';
 import authUtils from '../utils/authUtils.js';
 
-class AuthSceen extends Component {
-  constructor(props) {
-    super(props);
-    this.showLogin = this.showLogin.bind(this);
-    this.showRegister = this.showRegister.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleLogin = this.handleLogin.bind(this);
-    this.handleRegister = this.handleRegister.bind(this);
-    this.verifyPassword = this.verifyPassword.bind(this);
+const AuthSceen = (props) => {
+  const loggedIn = props.completionCallback;
 
-    this.loggedIn = this.props.completionCallback;
-    this.state = {
-      showLogin: true,
-      showRegister: false,
-      showSpinner: false,
-      regSuccess: false,
-      regFailed: false,
-      loginFailed: false,
-      LoginUserName: '',
-      LoginPassword: '',
-      RegUserName: '',
-      RegPassword: '',
-      RegPasswordVerify: ''
-    }
+  const [showLogin, setShowLogin] = useState(true);
+  const [showRegister, setShowRegister] = useState(false);
+  const [showSpinner, setShowSpinner] = useState(false);
+  const [regSuccess, setRegSuccess] = useState(false);
+  const [regFailed, setRegFailed] = useState(false);
+  const [loginFailed, setLoginFailed] = useState(false);
+  const [LoginUserName, setLoginUserName] = useState('');
+  const [LoginPassword, setLoginPassword] = useState('');
+  const [RegUserName, setRegUserName] = useState('');
+  const [RegPassword, setRegPassword] = useState('');
+  const [RegPasswordVerify, setRegPasswordVerify] = useState('');
+
+  const loginPage = () => {
+    setShowLogin(true);
+    setShowRegister(false);
+    setRegSuccess(false);
+    setRegFailed(false);
+    setLoginFailed(false);
   }
 
-  showLogin() {
-    this.setState({
-      showLogin: true,
-      showRegister: false,
-      regSuccess: false,
-      regFailed: false,
-      loginFailed: false
-    });
+  const registerPage = () => {
+    setShowLogin(false);
+    setShowRegister(true);
+    setRegSuccess(false);
+    setRegFailed(false);
+    setLoginFailed(false);
   }
 
-  showRegister() {
-    this.setState({
-      showLogin: false,
-      showRegister: true,
-      regSuccess: false,
-      regFailed: false,
-      loginFailed: false
-    });
+  const verifyPassword = (value) => {
+    return value === RegPassword ? '' : 'Passwords do not match';
   }
 
-  handleInputChange(event) {
-    const value = event.target.value;
-    const name = event.target.name;
-
-    this.setState({
-      [name]: value
-    });
-  }
-
-  verifyPassword(value) {
-    return value === this.state.RegPassword ? '' : 'Passwords do not match';
-  }
-
-  handleLogin(event) {
+  const handleLogin = (event) => {
     event.preventDefault();
 
-    this.setState({
-      showSpinner: true
-    });
-    authConnector.login(this.state.LoginUserName, this.state.LoginPassword).then((result) => {
-      this.setState({
-        showSpinner: false
-      });
+    setShowSpinner(true);
+    authConnector.login(LoginUserName, LoginPassword).then((result) => {
+      setShowSpinner(false);
       if (result.success) {
         authUtils.saveToken(result.accessToken, result.refreshToken);
-        this.setState({
-          regSuccess: false,
-          loginFailed: false
-        });
-        this.loggedIn();
+        setRegSuccess(false);
+        setLoginFailed(false);
+        loggedIn();
       }
       else {
-        this.setState({
-          regSuccess: false,
-          loginFailed: true
-        });
+        setRegSuccess(false);
+        setLoginFailed(true);
       }
     });
   }
 
-  handleRegister(event) {
+  const handleRegister = (event) => {
     event.preventDefault();
 
-    if (this.state.RegPassword !== this.state.RegPasswordVerify) {
+    if (RegPassword !== RegPasswordVerify) {
       return;
     }
 
-    this.setState({
-      showSpinner: true
-    });
-    authConnector.register(this.state.LoginUserName, this.state.LoginPassword).then((result) => {
-      this.setState({
-        showSpinner: false
-      });
+    setShowSpinner(true);
+    authConnector.register(LoginUserName, LoginPassword).then((result) => {
+      setShowSpinner(false);
       if (result.success) {
         authUtils.saveToken(result.accessToken, result.refreshToken);
-        this.setState({
-          showLogin: true,
-          showRegister: false,
-          regSuccess: false,
-          regFailed: false
-        });
-        this.loggedIn();
+        setShowLogin(true);
+        setShowRegister(false);
+        setRegSuccess(false);
+        setRegFailed(false);
+        loggedIn();
       }
       else {
-        this.setState({
-          regFailed: true
-        });
+        setRegFailed(true);
       }
     });
   }
 
-  render() {
-    return (
-      <div>
-        {
-          this.state.showLogin &&
-          <form onSubmit={this.handleLogin}>
-            <Stack tokens={{ childrenGap: 10 }} horizontalAlign="center">
-              {
-                this.state.regSuccess &&
-                <MessageBar messageBarType={MessageBarType.success} isMultiline={false}>
-                  Registration successful
-                </MessageBar>
-              }
-              {
-                this.state.loginFailed &&
-                <MessageBar messageBarType={MessageBarType.error} isMultiline={false}>
-                  The username and password do not match
-                </MessageBar>
-              }
-              <TextField label="User name" name="LoginUserName" value={this.state.LoginUserName} onChange={this.handleInputChange} required />
-              <TextField label="Password" name="LoginPassword" value={this.state.LoginPassword} onChange={this.handleInputChange} type="password" required />
-              <Stack horizontal tokens={{ childrenGap: 10 }} verticalAlign="center">
-                <PrimaryButton text="Login" type="submit" />
-                { this.state.showSpinner && <Spinner size={SpinnerSize.small} /> }
-              </Stack>
-              <Link onClick={this.showRegister}>Click here to register</Link>
+  return (
+    <div>
+      {
+        showLogin &&
+        <form onSubmit={handleLogin}>
+          <Stack tokens={{ childrenGap: 10 }} horizontalAlign="center">
+            {
+              regSuccess &&
+              <MessageBar messageBarType={MessageBarType.success} isMultiline={false}>
+                Registration successful
+              </MessageBar>
+            }
+            {
+              loginFailed &&
+              <MessageBar messageBarType={MessageBarType.error} isMultiline={false}>
+                The username and password do not match
+              </MessageBar>
+            }
+            <TextField label="User name" value={LoginUserName} onChange={(e) => setLoginUserName(e.target.value)} required />
+            <TextField label="Password" value={LoginPassword} onChange={(e) => setLoginPassword(e.target.value)} type="password" required />
+            <Stack horizontal tokens={{ childrenGap: 10 }} verticalAlign="center">
+              <PrimaryButton text="Login" type="submit" />
+              { showSpinner && <Spinner size={SpinnerSize.small} /> }
             </Stack>
-          </form>
-        }
-        {
-          this.state.showRegister &&
-          <form onSubmit={this.handleRegister}>
-            <Stack tokens={{ childrenGap: 10 }} horizontalAlign="center">
-              {
-                this.state.regFailed &&
-                <MessageBar messageBarType={MessageBarType.error} isMultiline={false}>
-                  The username and password do not match.
-                </MessageBar>
-              }
-              <TextField label="User name" name="RegUserName" value={this.state.RegUserName} onChange={this.handleInputChange} required />
-              <TextField label="Password" name="RegPassword" type="password" value={this.state.RegPassword} onChange={this.handleInputChange} required />
-              <TextField label="Verify password" name="RegPasswordVerify" type="password" value={this.state.RegPasswordVerify} onChange={this.handleInputChange} onGetErrorMessage={this.verifyPassword} required />
-              <Stack horizontal tokens={{ childrenGap: 10 }} verticalAlign="center">
-                <PrimaryButton text="Register" type="submit" />
-                { this.state.showSpinner && <Spinner size={SpinnerSize.small} /> }
-              </Stack>
-              <Link onClick={this.showLogin}>Return to login</Link>
+            <Link onClick={registerPage}>Click here to register</Link>
+          </Stack>
+        </form>
+      }
+      {
+        showRegister &&
+        <form onSubmit={handleRegister}>
+          <Stack tokens={{ childrenGap: 10 }} horizontalAlign="center">
+            {
+              regFailed &&
+              <MessageBar messageBarType={MessageBarType.error} isMultiline={false}>
+                The username and password do not match.
+              </MessageBar>
+            }
+            <TextField label="User name" value={RegUserName} onChange={(e) => setRegUserName(e.target.value)} required />
+            <TextField label="Password" type="password" value={RegPassword} onChange={(e) => setRegPassword(e.target.value)} required />
+            <TextField label="Verify password" type="password" value={RegPasswordVerify} onChange={(e) => setRegPasswordVerify(e.target.value)} onGetErrorMessage={verifyPassword} required />
+            <Stack horizontal tokens={{ childrenGap: 10 }} verticalAlign="center">
+              <PrimaryButton text="Register" type="submit" />
+              { showSpinner && <Spinner size={SpinnerSize.small} /> }
             </Stack>
-          </form>
-        }
-      </div>
-    );
-  }
+            <Link onClick={loginPage}>Return to login</Link>
+          </Stack>
+        </form>
+      }
+    </div>
+  );
 }
 
 export default AuthSceen;
